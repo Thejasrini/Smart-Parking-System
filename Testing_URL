@@ -1,0 +1,145 @@
+🧪 Test It with Postman (or Thunder Client in VS Code)
+Register a user:
+POST http://localhost:5000/api/auth/register
+Body (JSON):
+{
+  "name": "John",
+  "email": "john@gmail.com",
+  "password": "123456",
+  "role": "user"
+}
+Register an owner:
+POST http://localhost:5000/api/auth/register
+Body (JSON):
+{
+  "name": "Parking Owner",
+  "email": "owner@gmail.com",
+  "password": "123456",
+  "role": "owner"
+}
+Login:
+POST http://localhost:5000/api/auth/login
+Body (JSON):
+{
+  "email": "john@gmail.com",
+  "password": "123456"
+}
+👉 You'll get a token back. Save it — you'll use it in future requests!
+
+
+
+
+
+
+
+2. Admin approves it (need an admin user first):
+PUT http://localhost:5000/api/parking/approve/<parking_id>
+Headers: Authorization: Bearer <admin_token>
+👉 To create an admin, register with "role": "admin" temporarily, or directly update in MongoDB Compass.
+3. User searches nearby:
+GET http://localhost:5000/api/parking/search?lat=11.6643&lng=78.1460
+👉 Returns parkings sorted by nearest first ✅
+
+
+
+
+
+🧪 Test with Postman
+1. Owner adds parking (use owner token):
+POST http://localhost:5000/api/parking/add
+Headers: Authorization: Bearer <owner_token>
+Body:
+{
+  "name": "City Center Parking",
+  "address": "123 Main St",
+  "lat": 11.6643,
+  "lng": 78.1460,
+  "totalSlots": 20,     
+  "price": 50
+}
+
+
+
+
+
+🧪 Test with Postman
+1. User creates booking:
+POST http://localhost:5000/api/booking/create
+Headers: Authorization: Bearer <user_token>
+Body:
+{
+  "parkingId": "<parking_id>",
+  "date": "2025-04-25",
+  "timeSlot": "10:00 AM"
+}
+2. Owner sees pending bookings:
+GET http://localhost:5000/api/booking/owner
+Headers: Authorization: Bearer <owner_token>
+3. Owner approves:
+PUT http://localhost:5000/api/booking/status/<booking_id>
+Headers: Authorization: Bearer <owner_token>
+Body:
+{
+  "status": "approved"
+}
+4. User checks their bookings:
+GET http://localhost:5000/api/booking/mine
+Headers: Authorization: Bearer <user_token>
+
+🧠 Full Flow Summary
+User books → pending
+     ↓
+Fraud check passes? → saved to DB
+     ↓
+Owner sees request → approves/rejects
+     ↓
+If approved → slots -1, saved to History
+     ↓
+User sees status updated ✅
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+🧪 Test with Postman
+1. Predict availability:
+GET http://localhost:5000/api/ai/predict/<parkingId>?date=2025-04-25&timeSlot=10:00 AM
+Headers: Authorization: Bearer <token>
+2. Get peak hours:
+GET http://localhost:5000/api/ai/demand/<parkingId>
+Headers: Authorization: Bearer <token>
+3. Chat with bot:
+POST http://localhost:5000/api/ai/chat
+Headers: Authorization: Bearer <token>
+Body:
+{
+  "message": "Find cheap parking"
+}
+
+🧠 How All AI Features Connect
+User searches parking
+      ↓
+Each parking shows → 🟢 Likely Available / 🔴 Likely Full
+      ↓
+User checks peak hours → Best time to book
+      ↓
+User books → Fraud check runs automatically
+      ↓
+User chats → Bot gives smart suggestions
