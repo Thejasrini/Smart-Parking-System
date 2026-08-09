@@ -150,6 +150,7 @@ const Register = () => {
                   <select style={styles.select} name="role" onChange={handleChange}>
                     <option value="user">🚗 User - Find & Book Parking</option>
                     <option value="owner">🅿️ Owner - Manage Your Parking</option>
+                    <option value="admin">🛡️ Admin - System Administrator</option>
                   </select>
                 </div>
               </div>
