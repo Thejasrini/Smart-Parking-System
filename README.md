@@ -147,8 +147,4 @@ Parking_System/
 
 For step-by-step deployment instructions to **Vercel**, **Render**, and **MongoDB Atlas**, refer to [DEPLOYMENT.md](DEPLOYMENT.md).
 
----
 
-## 📜 License
-
-Distributed under the MIT License. See `LICENSE` for more information.
