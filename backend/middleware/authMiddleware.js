@@ -1,21 +1,22 @@
 const jwt = require('jsonwebtoken');
 
+const JWT_SECRET = process.env.JWT_SECRET || 'smartparking_secret_key_2026';
+
 // ✅ Check if user is logged in
 const protect = (req, res, next) => {
   try {
     // Get token from header
     const token = req.headers.authorization?.split(' ')[1];
-    // Authorization: "Bearer <token>"
 
     if (!token) {
       return res.status(401).json({ message: 'No token, access denied' });
     }
 
     // Verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, JWT_SECRET);
     req.user = decoded; // { id, role }
 
-    next(); // move to next function
+    next();
 
   } catch (err) {
     res.status(401).json({ message: 'Invalid token' });

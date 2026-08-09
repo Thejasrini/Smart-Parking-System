@@ -2,6 +2,8 @@ const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
+const JWT_SECRET = process.env.JWT_SECRET || 'smartparking_secret_key_2026';
+
 const buildUserPayload = (user) => ({
   id: user._id,
   name: user.name,
@@ -25,8 +27,12 @@ const register = async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
 
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Email and password are required' });
+    }
+
     // Check if user already exists
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ email: email.toLowerCase() });
     if (existingUser) {
       return res.status(400).json({ message: 'Email already registered' });
     }
@@ -36,19 +42,28 @@ const register = async (req, res) => {
 
     // Create new user
     const user = await User.create({
-      name,
-      email,
+      name: name || 'User',
+      email: email.toLowerCase(),
       password: hashedPassword,
-      role: role || 'user'   // default is 'user'
+      role: role || 'user'
     });
+
+    // Create JWT token
+    const token = jwt.sign(
+      { id: user._id, role: user.role },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
 
     res.status(201).json({
       message: '✅ Registered successfully',
+      token,
       user: buildUserPayload(user)
     });
 
   } catch (err) {
-    res.status(500).json({ message: '❌ Server error', error: err.message });
+    console.error('❌ Register Error:', err);
+    res.status(500).json({ message: '❌ Server error: ' + err.message });
   }
 };
 
@@ -57,8 +72,12 @@ const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Email and password are required' });
+    }
+
     // Find user
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: email.toLowerCase() });
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
@@ -71,9 +90,9 @@ const login = async (req, res) => {
 
     // Create JWT token
     const token = jwt.sign(
-      { id: user._id, role: user.role },  // payload
-      process.env.JWT_SECRET,              // secret
-      { expiresIn: '7d' }                  // expires in 7 days
+      { id: user._id, role: user.role },
+      JWT_SECRET,
+      { expiresIn: '7d' }
     );
 
     res.status(200).json({
@@ -83,7 +102,8 @@ const login = async (req, res) => {
     });
 
   } catch (err) {
-    res.status(500).json({ message: '❌ Server error', error: err.message });
+    console.error('❌ Login Error:', err);
+    res.status(500).json({ message: '❌ Server error: ' + err.message });
   }
 };
 
@@ -96,7 +116,8 @@ const getMyProfile = async (req, res) => {
     }
     res.status(200).json(user);
   } catch (err) {
-    res.status(500).json({ message: '❌ Server error', error: err.message });
+    console.error('❌ Profile Error:', err);
+    res.status(500).json({ message: '❌ Server error: ' + err.message });
   }
 };
 
@@ -185,7 +206,8 @@ const updateMyProfile = async (req, res) => {
 
     res.status(200).json({ message: '✅ Profile updated', user });
   } catch (err) {
-    res.status(500).json({ message: '❌ Server error', error: err.message });
+    console.error('❌ Update Profile Error:', err);
+    res.status(500).json({ message: '❌ Server error: ' + err.message });
   }
 };
 
@@ -217,7 +239,8 @@ const changePassword = async (req, res) => {
 
     res.status(200).json({ message: '✅ Password changed successfully' });
   } catch (err) {
-    res.status(500).json({ message: '❌ Server error', error: err.message });
+    console.error('❌ Change Password Error:', err);
+    res.status(500).json({ message: '❌ Server error: ' + err.message });
   }
 };
 
